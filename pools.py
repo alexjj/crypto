@@ -1,11 +1,21 @@
 # CAKE / BUNNY optimiser
 #%%
-cake_staked = 200000 # in GBP
-cake_price = 28
-bunny_price = 236
-bnb_price = 456
-fees_to_compound = 4
-cake_pool_apr = 90
+cake_staked = 1000 # in GBP
+cake_price = 27.97 # in GBP
+bunny_price = 243.51 # in GBP
+bnb_price = 462.99 # in GBP
+fees_in_bnb = 0.00600979
+fees_to_compound = fees_in_bnb * bnb_price
+cake_pool_apr = 90  # %
+
+"""
+Fees:
+Claim from bunny = 0.004522975 BNB ($2.91)
+Approve swapping of bunny = 0.000222035 BNB ($0.14) (one time?)
+Swap bunny to cake = 0.00082049 BNB ($0.53)
+Stake new cake = 0.000666235 BNB ($0.43)
+Total = 0.006009790 BNB ($3.87)
+"""
 
 def simple_interest(amount, interest):
     """Calculates interest for fixed period
@@ -60,10 +70,9 @@ def optimal_interval(amount, annual_interest, fees):
     return first_compound_amount, compound_frequency, final_amount, real_apy
 
 
-#%%
 
-compound_interest(cake_staked, cake_pool_apr, 174, fees_to_compound)
 # %%
+# Optimum cake staking
 
 a = optimal_interval(cake_staked, cake_pool_apr, fees_to_compound)
 
