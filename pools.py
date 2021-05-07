@@ -1,21 +1,15 @@
-# CAKE / BUNNY optimiser
-#%%
-cake_staked = 1000 # in GBP
-cake_price = 27.97 # in GBP
-bunny_price = 243.51 # in GBP
-bnb_price = 462.99 # in GBP
+import streamlit as st
+import altair as alt
+import pandas as pd
+
+#cake_staked = 190000 # in GBP
+cake_price = 26.42 # in GBP
+bunny_price = 222.62 # in GBP
+bnb_price = 453.03 # in GBP
 fees_in_bnb = 0.00600979
 fees_to_compound = fees_in_bnb * bnb_price
-cake_pool_apr = 90  # %
+cake_pool_apr = 104.05  # %
 
-"""
-Fees:
-Claim from bunny = 0.004522975 BNB ($2.91)
-Approve swapping of bunny = 0.000222035 BNB ($0.14) (one time?)
-Swap bunny to cake = 0.00082049 BNB ($0.53)
-Stake new cake = 0.000666235 BNB ($0.43)
-Total = 0.006009790 BNB ($3.87)
-"""
 
 def simple_interest(amount, interest):
     """Calculates interest for fixed period
@@ -52,6 +46,28 @@ def compound_interest(amount, annual_interest, periods, fees, days = 365):
 
     return amount
 
+def compound_interest_bunny(amount, annual_interest, periods, fees, days = 365):
+    """Calculate total returns based upon periodic compounding
+
+    Args:
+        amount ([float]): The starting amount
+        annual_interest ([float]): Interest rate annually in %, e.g. 90% would be 90
+        periods ([int]): Number of times to compound
+        fees ([float]): Fees to compound, e.g. claiming and staking
+        days ([int]): Number of days over which periods are defined
+
+    Returns:
+        [float]: The total amount including interest and fees
+    """    
+    days_per_period = days / periods
+    period_interest = annual_interest / 365 * days_per_period
+
+    for _ in range(periods):
+        amount = amount + amount * period_interest / 100 * 0.7 + amount * period_interest / 100 * 0.3 * 5 * bunny_price / bnb_price - fees
+
+
+    return amount
+
 
 def optimal_interval(amount, annual_interest, fees):
     final_amount = compound_interest(amount, annual_interest, periods=1, fees=fees)
@@ -70,11 +86,68 @@ def optimal_interval(amount, annual_interest, fees):
     return first_compound_amount, compound_frequency, final_amount, real_apy
 
 
+# Cake Staking on bunny
 
-# %%
-# Optimum cake staking
 
-a = optimal_interval(cake_staked, cake_pool_apr, fees_to_compound)
+def optimal_interval_bunny(amount, annual_interest, fees):
+    final_amount = compound_interest_bunny(amount, annual_interest, periods=1, fees=fees)
+    optimum_periods = 1
+    while True:
+        next_result = compound_interest_bunny(amount, annual_interest, periods=optimum_periods + 1, fees=fees)
+        if next_result <= final_amount:
+            break
+        optimum_periods += 1
+        final_amount = next_result
+    
+    first_compound_amount = simple_interest(amount, annual_interest / optimum_periods) - amount
+    compound_frequency = 365 / optimum_periods
+    real_apy = 100 * (final_amount - amount) / amount
 
-f"Compound when you have {a[0] / cake_price:.1f} cake, which is every {a[1]:.2f} days, leading to {a[2] / cake_price:.1f} in cake (worth £{a[2]:,.0f}) over one year with a APY of {a[3]:.2f}%"
-# %%
+    return first_compound_amount, compound_frequency, final_amount, real_apy
+
+
+def print_results(results):
+    lines = (
+        f"Compound when you have {results[0] / cake_price:.1f} cake, which is every {results[1]:.2f} days. ",
+        f"Leading to {results[2] / cake_price:.1f} in cake (worth £{results[2]:,.0f}) over one year with a APY of {results[3]:.2f}%"
+    )
+    # return f"Compound when you have {results[0] / cake_price:.1f} cake, which is every {results[1]:.2f} days. Leading to {results[2] / cake_price:.1f} in cake (worth £{results[2]:,.0f}) over one year with a APY of {results[3]:.2f}%"
+    return lines
+
+
+
+
+st.title('🐰Pancakebunny CAKE🍰 Compounder')
+st.write("Working out how often you should compound your CAKE. \
+Assumes you swap BUNNY back to CAKE to stake.")
+st.write("Should you stake on [pancakeswap](https://pancakeswap.finance/pools) or [bunnyswap](https://pancakebunny.finance/pool/CAKE)?")
+cake_staked = st.number_input(label='Enter CAKE staked in £:', value=1000)
+st.write("")
+
+pancakeswap = optimal_interval(cake_staked, cake_pool_apr, fees_to_compound)
+bunnyswap = optimal_interval_bunny(cake_staked, cake_pool_apr, fees_to_compound)
+
+st.write("## On Pancakeswap:")
+st.write(print_results(pancakeswap)[0])
+st.write(print_results(pancakeswap)[1])
+st.write("## On Pancakebunny:")
+st.write(print_results(bunnyswap)[0])
+st.write(print_results(bunnyswap)[1])
+
+df = pd.DataFrame({'Days': range(1, 366)})
+df['Pancakeswap'] = df['Days'] / 365 * pancakeswap[3] / 100 * cake_staked + cake_staked
+df['Bunnyswap'] = df['Days'] / 365 * bunnyswap[3] / 100 * cake_staked + cake_staked
+
+# st.dataframe(df.style.format({'Pancakeswap': '£{:,.0f}', 'Bunnyswap': '£{:,.0f}'}))
+
+st.subheader("Compare performance over time")
+
+chart_data = df.melt('Days')
+chart_data.columns = ['Days', 'Platform', 'Amount']
+
+c = alt.Chart(chart_data).mark_line().encode(
+    x=alt.X('Days'),
+    y=alt.Y('Amount', axis=alt.Axis(format=',.0f'), title="Amount (£)"),
+    color='Platform'
+)
+st.altair_chart(c, use_container_width=True)
