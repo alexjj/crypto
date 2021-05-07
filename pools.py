@@ -158,7 +158,8 @@ c = alt.Chart(chart_data).mark_line().encode(
     x=alt.X('Days'),
     y=alt.Y('Amount', axis=alt.Axis(format=',.0f'), title="Amount (£)"),
     color='Platform'
-)
+).interactive()
+
 st.altair_chart(c, use_container_width=True)
 
 st.header("The winner?")
