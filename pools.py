@@ -115,6 +115,15 @@ def print_results(results):
     return lines
 
 
+def winner(pancake, bunny):
+    if pancake[2] > bunny[2]:
+        winner = "Pancake"
+        amount = pancake[2] - bunny[2]
+    else:
+        winner = "Bunny"
+        amount = bunny[2] - pancake[2]
+    
+    return winner, amount
 
 
 st.title('🐰Pancakebunny CAKE🍰 Compounder')
@@ -151,3 +160,9 @@ c = alt.Chart(chart_data).mark_line().encode(
     color='Platform'
 )
 st.altair_chart(c, use_container_width=True)
+
+st.header("The winner?")
+
+winner, amount = winner(pancakeswap, bunnyswap)
+
+st.write(f"Is... {winner}! Earning you £{amount:,.0f} more.")
