@@ -1,14 +1,35 @@
 import streamlit as st
 import altair as alt
 import pandas as pd
+import requests
 
-#cake_staked = 190000 # in GBP
-cake_price = 26.42 # in GBP
-bunny_price = 222.62 # in GBP
-bnb_price = 453.03 # in GBP
-fees_in_bnb = 0.00600979
-fees_to_compound = fees_in_bnb * bnb_price
-cake_pool_apr = 104.05  # %
+
+
+def get_prices():
+    price_url ='https://api.coingecko.com/api/v3/simple/price?ids=pancakeswap-token%2Cbinancecoin%2Cpancake-bunny&vs_currencies=gbp'
+
+    response = requests.get(url = price_url)
+    price_data = response.json()
+    
+    global cake_price
+    global bunny_price
+    global bnb_price
+    global fees_to_compound
+    global cake_pool_apr
+
+    cake_price = price_data['pancakeswap-token']['gbp']
+    bunny_price = price_data['pancake-bunny']['gbp']
+    bnb_price = price_data['binancecoin']['gbp']
+
+    fees_in_bnb = 0.00600979
+    fees_to_compound = fees_in_bnb * bnb_price
+    cake_pool_apr = 104.05  # %
+
+    return None
+
+get_prices()
+
+
 
 
 def simple_interest(amount, interest):
@@ -63,7 +84,7 @@ def compound_interest_bunny(amount, annual_interest, periods, fees, days = 365):
     period_interest = annual_interest / 365 * days_per_period
 
     for _ in range(periods):
-        amount = amount + amount * period_interest / 100 * 0.7 + amount * period_interest / 100 * 0.3 * 5 * bunny_price / bnb_price - fees
+        amount = amount + amount * period_interest / 100 * 0.7 + amount * period_interest / 100 * 0.3 * 3 * bunny_price / bnb_price - fees
 
 
     return amount
@@ -114,6 +135,14 @@ def print_results(results):
     # return f"Compound when you have {results[0] / cake_price:.1f} cake, which is every {results[1]:.2f} days. Leading to {results[2] / cake_price:.1f} in cake (worth £{results[2]:,.0f}) over one year with a APY of {results[3]:.2f}%"
     return lines
 
+def print_results_bunny(results):
+    lines = (
+        f"Compound when you have {results[0] * 0.7 / cake_price:.1f} cake, which is every {results[1]:.2f} days. ",
+        f"Leading to {results[2] / cake_price:.1f} in cake (worth £{results[2]:,.0f}) over one year with a APY of {results[3]:.2f}%"
+    )
+    # return f"Compound when you have {results[0] / cake_price:.1f} cake, which is every {results[1]:.2f} days. Leading to {results[2] / cake_price:.1f} in cake (worth £{results[2]:,.0f}) over one year with a APY of {results[3]:.2f}%"
+    return lines
+
 
 def winner(pancake, bunny):
     if pancake[2] > bunny[2]:
@@ -136,12 +165,14 @@ st.write("")
 pancakeswap = optimal_interval(cake_staked, cake_pool_apr, fees_to_compound)
 bunnyswap = optimal_interval_bunny(cake_staked, cake_pool_apr, fees_to_compound)
 
+st.write(f"🍰 £{cake_price:,.2f}, 🐰 £{bunny_price:,.2f}, 💰BNB £{bnb_price:,.2f}")
+
 st.write("## On Pancakeswap:")
 st.write(print_results(pancakeswap)[0])
 st.write(print_results(pancakeswap)[1])
 st.write("## On Pancakebunny:")
-st.write(print_results(bunnyswap)[0])
-st.write(print_results(bunnyswap)[1])
+st.write(print_results_bunny(bunnyswap)[0])
+st.write(print_results_bunny(bunnyswap)[1])
 
 df = pd.DataFrame({'Days': range(1, 366)})
 df['Pancakeswap'] = df['Days'] / 365 * pancakeswap[3] / 100 * cake_staked + cake_staked
@@ -167,3 +198,5 @@ st.header("The winner?")
 winner, amount = winner(pancakeswap, bunnyswap)
 
 st.write(f"Is... {winner}! Earning you £{amount:,.0f} more.")
+
+
