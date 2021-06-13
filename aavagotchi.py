@@ -25,7 +25,7 @@ gotchi_display.set_index('name', inplace=True)
 
 st.title('👻 Aavegotchi bargain hunter 💰')
 st.write("Find the best value gotchi on the market. \
-Aimed a new frens wanting to get into it without spending a fortune!")
+Aimed at new frens wanting to get into it without spending a fortune!")
 
 st.image("meme.jpg", caption="So you missed Haunt 1")
 
