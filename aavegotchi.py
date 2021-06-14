@@ -20,7 +20,7 @@ gotchi = pd.DataFrame(get_data(gotchi_url))
 gotchi['brs'] = pd.to_numeric(gotchi['brs'])
 gotchi['mbrs'] = pd.to_numeric(gotchi['mbrs'])
 gotchi['brs/ghst'] = gotchi.mbrs / gotchi.price
-gotchi_display = gotchi[['name','price','mbrs','listing_url', 'brs/ghst']]
+gotchi_display = gotchi[['name','price','brs', 'mbrs','listing_url', 'brs/ghst']]
 gotchi_display.set_index('name', inplace=True)
 
 st.title('👻 Aavegotchi bargain hunter 💰')
