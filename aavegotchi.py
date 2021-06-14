@@ -19,8 +19,8 @@ portals_display.set_index('id', inplace=True)
 gotchi = pd.DataFrame(get_data(gotchi_url))
 gotchi['brs'] = pd.to_numeric(gotchi['brs'])
 gotchi['mbrs'] = pd.to_numeric(gotchi['mbrs'])
-gotchi['brs/ghst'] = gotchi.mbrs / gotchi.price
-gotchi_display = gotchi[['name','price','brs', 'mbrs','listing_url', 'brs/ghst']]
+gotchi['mbrs/ghst'] = gotchi.mbrs / gotchi.price
+gotchi_display = gotchi[['name','price','brs', 'mbrs','listing_url', 'mbrs/ghst']]
 gotchi_display.set_index('name', inplace=True)
 
 st.title('👻 Aavegotchi bargain hunter 💰')
@@ -31,7 +31,7 @@ st.image("meme.jpg", caption="So you missed Haunt 1")
 
 st.write("## Gotchi for sale")
 st.write("Top 20, sorted by rarity per GHST")
-st.table(gotchi_display.sort_values(by=['brs/ghst'], ascending=False).head(20))
+st.table(gotchi_display.sort_values(by=['mbrs/ghst'], ascending=False).head(20))
 
 st.write("## Open portals for sale")
 st.write("Top 20, sorted by rarity per GHST")
