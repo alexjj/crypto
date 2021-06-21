@@ -2,6 +2,15 @@
 import requests
 import pandas as pd
 from string import Template
+
+# todo
+# remove zeros from results
+# expand traits
+# clean up columns
+# lookup wearables list
+# download all gotchi, and estimate price
+
+
 #%%
 queryTemplate = Template("""
 {
@@ -62,4 +71,9 @@ for i in range(10):
 # %%
 all_data['priceInWei'] = all_data['priceInWei'].astype(float)
 all_data['GHST'] = all_data['priceInWei'] / 1e18
+# %%
+
+all_data.to_excel('gotchi.xlsx')
+# %%
+
 # %%
