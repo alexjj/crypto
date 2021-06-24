@@ -12,7 +12,7 @@ from string import Template
 
 
 #%%
-queryTemplate = Template("""
+gotchi_sales_query = Template("""
 {
     erc721Listings(
       first: 1000,
@@ -45,6 +45,32 @@ queryTemplate = Template("""
   }
 """
 )
+
+wearable_sales_query = Template("""
+{
+    erc1155Purchases(
+      first: 1000,
+      skip: $skip,
+      where: {
+       category: 0,
+       quantity_gt: 0
+      },
+      orderBy:timeLastPurchased,
+      orderDirection:desc
+    ) {
+      id
+      priceInWei
+      erc1155TypeId
+      timeLastPurchased
+      quantity
+      seller
+      buyer
+      listingID
+    }
+  }
+""")
+
+
 #%%
 def run_query(query):
     request = requests.post('https://api.thegraph.com/subgraphs/name/aavegotchi/aavegotchi-core-matic', json={'query': query})
@@ -59,29 +85,29 @@ def json_to_df(json):
 #%%
 # async this 
 
-all_data = pd.DataFrame()
+gotchi_sales = pd.DataFrame()
 for i in range(10):
     skip = i * 1000
-    data = json_to_df(run_query(queryTemplate.substitute(skip=skip)))
+    data = json_to_df(run_query(gotchi_sales_query.substitute(skip=skip)))
     if len(data) > 0:
-        all_data = all_data.append(data)
+        gotchi_sales = gotchi_sales.append(data)
     else: break
 
 
 # %%
-all_data['priceInWei'] = all_data['priceInWei'].astype(float)
-all_data['GHST'] = all_data['priceInWei'] / 1e18
-all_data['gotchi.stakedAmount'] = all_data['gotchi.stakedAmount'].astype(float)
-all_data['gotchi.stakedAmount'] = all_data['gotchi.stakedAmount'] / 1e18
-all_data = all_data.drop(columns=['priceInWei'], axis=1)
+gotchi_sales['priceInWei'] = gotchi_sales['priceInWei'].astype(float)
+gotchi_sales['GHST'] = gotchi_sales['priceInWei'] / 1e18
+gotchi_sales['gotchi.stakedAmount'] = gotchi_sales['gotchi.stakedAmount'].astype(float)
+gotchi_sales['gotchi.stakedAmount'] = gotchi_sales['gotchi.stakedAmount'] / 1e18
+gotchi_sales = gotchi_sales.drop(columns=['priceInWei'], axis=1)
 
 # remove non-numeric columns
-cols = all_data.columns.drop(['buyer', 'seller',
+cols = gotchi_sales.columns.drop(['buyer', 'seller',
        'gotchi.equippedWearables', 'gotchi.name', 'gotchi.collateral',
        'gotchi.numericTraits'])
 
-all_data[cols] = all_data[cols].apply(pd.to_numeric, errors='coerce')
-all_data = all_data[all_data['gotchi.baseRarityScore'] != 0]
+gotchi_sales[cols] = gotchi_sales[cols].apply(pd.to_numeric, errors='coerce')
+gotchi_sales = gotchi_sales[gotchi_sales['gotchi.baseRarityScore'] != 0]
 
 #%%
 
@@ -99,12 +125,12 @@ replace_values = {
 '0x98ea609569bd25119707451ef982b90e3eb719cd': 'maLINK'
 }
 
-all_data['gotchi.collateral'] = all_data['gotchi.collateral'].replace(replace_values, regex=True)
+gotchi_sales['gotchi.collateral'] = gotchi_sales['gotchi.collateral'].replace(replace_values, regex=True)
 
 #%%
 # rename all columns
 
-all_data = all_data.rename(columns={"id": "Listing", "buyer": "Buyer", "seller": "Seller",
+gotchi_sales = gotchi_sales.rename(columns={"id": "Listing", "buyer": "Buyer", "seller": "Seller",
 "timePurchased": "Block Sold", "gotchi.baseRarityScore": "BRS", "gotchi.collateral": "Collateral",
 'gotchi.equippedWearables':'Wearables List', 'gotchi.experience': 'XP', 'gotchi.id': 'Aavegotchi ID',
        'gotchi.kinship': 'Kinship', 'gotchi.modifiedRarityScore': 'MRS', 'gotchi.name': 'Name',
@@ -113,8 +139,13 @@ all_data = all_data.rename(columns={"id": "Listing", "buyer": "Buyer", "seller":
 # %%
 # traits
 
-all_data[['NRG', 'AGG', 'SPK', 'BRN', 'EYS', 'EYC']] = pd.DataFrame(all_data['Traits List'].tolist(), index = all_data.index)
-all_data = all_data.drop(columns=['Traits List'], axis=1)
+gotchi_sales[['NRG', 'AGG', 'SPK', 'BRN', 'EYS', 'EYC']] = pd.DataFrame(gotchi_sales['Traits List'].tolist(), index = gotchi_sales.index)
+gotchi_sales = gotchi_sales.drop(columns=['Traits List'], axis=1)
+
+# wearables
+gotchi_sales[['Body', 'Face', 'Eyes', 'Head', 'Left Hand', 'Right Hand', 'Pet', 'Background']] = pd.DataFrame(gotchi_sales['Wearables List'].tolist(), index = gotchi_sales.index)
+
+
 #%%
-all_data.to_excel('gotchi.xlsx')
+gotchi_sales.to_excel('gotchi.xlsx')
 # %%
