@@ -143,7 +143,7 @@ gotchi_sales[['NRG', 'AGG', 'SPK', 'BRN', 'EYS', 'EYC']] = pd.DataFrame(gotchi_s
 gotchi_sales = gotchi_sales.drop(columns=['Traits List'], axis=1)
 
 # wearables
-gotchi_sales['Naked'] = gotchi_sales['Wearables List'] == "[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]"
+
 
 gotchi_sales['Body'] = gotchi_sales['Wearables List'].str[0]
 gotchi_sales['Face'] = gotchi_sales['Wearables List'].str[1]
@@ -154,6 +154,8 @@ gotchi_sales['Right Hand'] = gotchi_sales['Wearables List'].str[5]
 gotchi_sales['Pet'] = gotchi_sales['Wearables List'].str[6]
 gotchi_sales['Background'] = gotchi_sales['Wearables List'].str[7]
 
+gotchi_sales['Naked'] = gotchi_sales['Body'] + gotchi_sales['Face'] + gotchi_sales['Eyes'] + gotchi_sales['Head'] + gotchi_sales['Left Hand'] + gotchi_sales['Right Hand'] + gotchi_sales['Pet'] + gotchi_sales['Background'] == 0
+
 gotchi_sales = gotchi_sales.drop(columns=['Wearables List'], axis=1)
 
 wearables_data_url = 'https://raw.githubusercontent.com/programmablewealth/aavegotchi-stats/master/src/data/wearables/wearables.json'
@@ -161,6 +163,13 @@ wearables_data = requests.get(wearables_data_url).json()
 wearables_name = {i:wearables_data[str(i)]["0"] for i in wearables_data}
 
 gotchi_sales['Body Item'] = gotchi_sales['Body'].apply(lambda x: 'NaN' if x == 0 else wearables_data[str(x)]["0"])
+gotchi_sales['Face Item'] = gotchi_sales['Face'].apply(lambda x: 'NaN' if x == 0 else wearables_data[str(x)]["0"])
+gotchi_sales['Eyes Item'] = gotchi_sales['Eyes'].apply(lambda x: 'NaN' if x == 0 else wearables_data[str(x)]["0"])
+gotchi_sales['Head Item'] = gotchi_sales['Head'].apply(lambda x: 'NaN' if x == 0 else wearables_data[str(x)]["0"])
+gotchi_sales['Left Hand Item'] = gotchi_sales['Left Hand'].apply(lambda x: 'NaN' if x == 0 else wearables_data[str(x)]["0"])
+gotchi_sales['Right Hand Item'] = gotchi_sales['Right Hand'].apply(lambda x: 'NaN' if x == 0 else wearables_data[str(x)]["0"])
+gotchi_sales['Pet Item'] = gotchi_sales['Pet'].apply(lambda x: 'NaN' if x == 0 else wearables_data[str(x)]["0"])
+gotchi_sales['Background Item'] = gotchi_sales['Background'].apply(lambda x: 'NaN' if x == 0 else wearables_data[str(x)]["0"])
 
 #%%
 
