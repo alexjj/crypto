@@ -10,8 +10,6 @@ from string import Template
 # lookup wearables list
 # download all gotchi, and estimate price
 
-
-#%%
 gotchi_sales_query = Template("""
 {
     erc721Listings(
@@ -71,7 +69,6 @@ wearable_sales_query = Template("""
 """)
 
 
-#%%
 def run_query(query):
     request = requests.post('https://api.thegraph.com/subgraphs/name/aavegotchi/aavegotchi-core-matic', json={'query': query})
     if request.status_code == 200:
@@ -82,8 +79,7 @@ def run_query(query):
 def json_to_df(json):
     return pd.json_normalize(json['data']['erc721Listings'])
 
-#%%
-# async this 
+
 
 gotchi_sales = pd.DataFrame()
 for i in range(10):
@@ -94,7 +90,6 @@ for i in range(10):
     else: break
 
 
-# %%
 gotchi_sales['priceInWei'] = gotchi_sales['priceInWei'].astype(float)
 gotchi_sales['Price (GHST)'] = gotchi_sales['priceInWei'] / 1e18
 gotchi_sales['gotchi.stakedAmount'] = gotchi_sales['gotchi.stakedAmount'].astype(float)
@@ -109,7 +104,6 @@ cols = gotchi_sales.columns.drop(['buyer', 'seller',
 gotchi_sales[cols] = gotchi_sales[cols].apply(pd.to_numeric, errors='coerce')
 gotchi_sales = gotchi_sales[gotchi_sales['gotchi.baseRarityScore'] != 0]
 
-#%%
 
 # replace collateral with tokens
 
@@ -127,7 +121,7 @@ replace_values = {
 
 gotchi_sales['gotchi.collateral'] = gotchi_sales['gotchi.collateral'].replace(replace_values, regex=True)
 
-#%%
+
 # rename all columns
 
 gotchi_sales = gotchi_sales.rename(columns={"id": "Listing", "buyer": "Buyer", "seller": "Seller",
@@ -136,7 +130,7 @@ gotchi_sales = gotchi_sales.rename(columns={"id": "Listing", "buyer": "Buyer", "
        'gotchi.kinship': 'Kinship', 'gotchi.modifiedRarityScore': 'MRS', 'gotchi.name': 'Name',
        'gotchi.numericTraits': 'Traits List', 'gotchi.stakedAmount': 'Staked Amount', })
 
-# %%
+
 # traits
 
 gotchi_sales[['NRG', 'AGG', 'SPK', 'BRN', 'EYS', 'EYC']] = pd.DataFrame(gotchi_sales['Traits List'].tolist(), index = gotchi_sales.index)
