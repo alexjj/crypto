@@ -1,0 +1,12 @@
+.header-title {
+    font-size: 48px;
+    color: rgb(255, 0, 234);
+}
+
+.header-description {
+    color: #CFCFCF;
+    margin: 4px auto;
+    text-align: center;
+    max-width: 384px;
+}
+  
