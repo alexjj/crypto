@@ -175,7 +175,7 @@ gotchi_sales['Background Item'] = gotchi_sales['Background'].apply(lambda x: 'Na
 
 
 #%%
-gotchi_sales.to_excel('gotchi.xlsx')
+gotchi_sales.to_csv('gotchi.csv')
 # %%
 import dtale
 d = dtale.show(gotchi_sales)
