@@ -94,10 +94,11 @@ gotchi_sales['priceInWei'] = gotchi_sales['priceInWei'].astype(float)
 gotchi_sales['Price (GHST)'] = gotchi_sales['priceInWei'] / 1e18
 gotchi_sales['gotchi.stakedAmount'] = gotchi_sales['gotchi.stakedAmount'].astype(float)
 gotchi_sales['gotchi.stakedAmount'] = gotchi_sales['gotchi.stakedAmount'] / 1e18
-gotchi_sales = gotchi_sales.drop(columns=['priceInWei'], axis=1)
+gotchi_sales['Date'] = pd.to_datetime(gotchi_sales['timePurchased'], unit='s')
+gotchi_sales = gotchi_sales.drop(columns=['priceInWei', 'timePurchased'], axis=1)
 
 # remove non-numeric columns
-cols = gotchi_sales.columns.drop(['buyer', 'seller',
+cols = gotchi_sales.columns.drop(['buyer', 'seller', 'Date',
        'gotchi.equippedWearables', 'gotchi.name', 'gotchi.collateral',
        'gotchi.numericTraits'])
 
@@ -125,7 +126,7 @@ gotchi_sales['gotchi.collateral'] = gotchi_sales['gotchi.collateral'].replace(re
 # rename all columns
 
 gotchi_sales = gotchi_sales.rename(columns={"id": "Listing", "buyer": "Buyer", "seller": "Seller",
-"timePurchased": "Block Sold", "gotchi.baseRarityScore": "BRS", "gotchi.collateral": "Collateral",
+"gotchi.baseRarityScore": "BRS", "gotchi.collateral": "Collateral",
 'gotchi.equippedWearables':'Wearables List', 'gotchi.experience': 'XP', 'gotchi.id': 'Aavegotchi ID',
        'gotchi.kinship': 'Kinship', 'gotchi.modifiedRarityScore': 'MRS', 'gotchi.name': 'Name',
        'gotchi.numericTraits': 'Traits List', 'gotchi.stakedAmount': 'Staked Amount', })
