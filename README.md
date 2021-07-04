@@ -1,5 +1,7 @@
 # crypto 💸
 
+Have a look at my new [Aavegotchi Baazaar explorer](http://aavegotchi.fyi) for a more full featured app.
+
 A few little helper tools across the crypto world.
 
 * [pools](https://share.streamlit.io/alexjj/crypto/pools.py) - Compares pancakeswap and pancakebunny for best CAKE staking
